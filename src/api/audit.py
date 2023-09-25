@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from src.api import auth
 import math
 
+
 router = APIRouter(
     prefix="/audit",
     tags=["audit"],
@@ -14,10 +15,12 @@ router = APIRouter(
 @router.get("/inventory")
 def get_inventory():
     """ """
-    print("Testing......")
+    #TODO
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_potions, num_red_ml, gold FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
     print(result)
+    for item in result:
+        print(item)
     return result
 
 class Result(BaseModel):
