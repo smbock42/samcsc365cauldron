@@ -17,7 +17,7 @@ def get_inventory():
     with db.engine.begin() as connection:
         result = connection.execute("SELECT num_red_potions, num_red_ml, gold FROM global_inventory")
     print(result)
-    return {"number_of_potions": 0, "ml_in_barrels": 0, "gold": 0}
+    return result
 
 class Result(BaseModel):
     gold_match: bool
