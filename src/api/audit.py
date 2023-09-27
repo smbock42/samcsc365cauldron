@@ -15,12 +15,8 @@ router = APIRouter(
 @router.get("/inventory")
 def get_inventory():
     """ """
-    #TODO
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
-    print(result)
-    for item in result:
-        print(item)
     return result
 
 class Result(BaseModel):
@@ -32,7 +28,8 @@ class Result(BaseModel):
 @router.post("/results")
 def post_audit_results(audit_explanation: Result):
     """ """
+    #TODO - not sure what to put here
     print(audit_explanation)
-    with db.engine.begin() as connection:
-        result = connection.execute(sql_to_execute)
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sql_to_execute)
     return "OK"

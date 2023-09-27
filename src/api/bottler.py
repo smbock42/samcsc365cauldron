@@ -19,9 +19,9 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
-    #TODO
+    #TODO - do I just add +1?
     with db.engine.begin() as connection:
-        result = connection.execute(sql_to_execute)
+        result = connection.execute(sqlalchemy.text("UPDATE table_name SET column_name = column_name + new_value WHERE condition"))
     return "OK"
 
 # Gets called 4 times a day
