@@ -12,14 +12,15 @@ def get_catalog():
     """
     #TODO
     with db.engine.begin() as connection:
-        result = connection.execute(sql_to_execute)
+        num_red_potions = connection.execute("SELECT num_red_potions FROM global_inventory")
+
     # Can return a max of 20 items.
 
     return [
             {
                 "sku": "RED_POTION_0",
                 "name": "red potion",
-                "quantity": 1,
+                "quantity": num_red_potions,
                 "price": 50,
                 "potion_type": [100, 0, 0, 0],
             }
