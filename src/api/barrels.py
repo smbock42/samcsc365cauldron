@@ -23,10 +23,13 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel]):
     """ """
     #TODO
-    for barrel in barrels_delivered:
-        print(barrel)
+    barrel = barrels_delivered[0]
+    add_barrel_sql = f"UPDATE global_inventory SET num_red_ml = num_red_ml + {barrel.ml_per_barrel*barrel.quantity}"
     with db.engine.begin() as connection:
-        result = connection.execute(sql_to_execute)
+        result = connection.execute(sqlalchemy.text(add_barrel_sql))
+    subtract_gold_sql = f"UPDATE global_inventory SET gold = gold - {barrel.price * barrel.quantity}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(subtract_gold_sql))
     return "OK"
 
 # Gets called once a day
