@@ -20,7 +20,8 @@ def get_catalog():
 
 
     # Can return a max of 20 items.
-
+    if num_red_potions == 0: 
+        return []
     return [
             {
                 "sku": "RED_POTION_0",
