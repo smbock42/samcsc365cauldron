@@ -69,7 +69,7 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-    #TODO
+    #TODO Check for sku 
 
     # get items from cart_id
     sql = f"SELECT item_sku, quantity from cart_items where cart_id = {cart_id}"
@@ -79,12 +79,21 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     #items = result.all()
 
     first_row = result.first()
-    red_quantity
+    sku = first_row[0]
+    quantity = first_row[1]
     
 
 
     # subtract potions and add gold
+    sql = f"UPDATE global_inventory SET num_red_potions = num_red_potions - {quantity}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
 
+#TODO: fix price per item to dynamic not 75
+    amount_of_money = 75*quantity
+    sql = f"UPDATE global_inventory SET gold = gold + {amount_of_money}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
 
     #get cart_items
 
@@ -93,4 +102,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     sql = f"DELETE FROM cart_table where id = {cart_id}"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    return {"total_potions_bought": 1, "total_gold_paid": 50}
+    
+    sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
+    return {"total_potions_bought": quantity, "total_gold_paid": amount_of_money}
