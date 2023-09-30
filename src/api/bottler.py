@@ -18,10 +18,13 @@ class PotionInventory(BaseModel):
 @router.post("/deliver")
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
-    print(potions_delivered)
-    #TODO - do I just add +1?
+    sql = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potions_delivered[0].quantity*potions_delivered[0].potion_type[0]}"
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("UPDATE table_name SET column_name = column_name + new_value WHERE condition"))
+        result = connection.execute(sqlalchemy.text(sql))
+
+    sql = f"UPDATE global_inventory SET num_red_potions = num_red_potions + {potions_delivered[0].quantity}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
     return "OK"
 
 # Gets called 4 times a day
@@ -36,12 +39,16 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
     # Initial logic: bottle all barrels into red potions.
-    #TODO
+    sql = "SELECT num_red_ml from global_inventory"
     with db.engine.begin() as connection:
-        result = connection.execute(sql_to_execute)
+        result = connection.execute(sqlalchemy.text(sql))
+    first_row = result.first()
+    num_red_ml = first_row[0]
+    quantity = num_red_ml//100
+    
     return [
             {
                 "potion_type": [100, 0, 0, 0],
-                "quantity": 5,
+                "quantity": quantity,
             }
         ]
