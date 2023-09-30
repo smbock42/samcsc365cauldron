@@ -55,12 +55,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             quantity = barrel.quantity
         else: 
             quantity = potential_quantity
-    else:
-        quantity = 0
-    return [
+        return [
         {
             "sku": "SMALL_RED_BARREL",
             "quantity": quantity,
         }
     ]
+    return []
+
 

@@ -45,7 +45,8 @@ def get_bottle_plan():
     first_row = result.first()
     num_red_ml = first_row[0]
     quantity = num_red_ml//100
-    
+    if quantity == 0:
+        return []
     return [
             {
                 "potion_type": [100, 0, 0, 0],
