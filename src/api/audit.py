@@ -15,12 +15,13 @@ router = APIRouter(
 @router.get("/inventory")
 def get_inventory():
     """ """
+    #TODO: Return items
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory"))
 
     result = result.all()
     
-    return result
+    return 
 
 class Result(BaseModel):
     gold_match: bool
