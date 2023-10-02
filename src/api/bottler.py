@@ -18,6 +18,7 @@ class PotionInventory(BaseModel):
 @router.post("/deliver")
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
+    print(potions_delivered)
     sql = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potions_delivered[0].quantity*potions_delivered[0].potion_type[0]}"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))

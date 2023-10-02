@@ -23,6 +23,7 @@ class Barrel(BaseModel):
 def post_deliver_barrels(barrels_delivered: list[Barrel]):
     """ """
     #TODO
+    print(barrels_delivered)
     barrel = barrels_delivered[0]
     add_barrel_sql = f"UPDATE global_inventory SET num_red_ml = num_red_ml + {barrel.ml_per_barrel*barrel.quantity}"
     with db.engine.begin() as connection:
@@ -37,7 +38,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     #DONE
-
+    print(wholesale_catalog)
     sql = "SELECT num_red_potions FROM global_inventory"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
