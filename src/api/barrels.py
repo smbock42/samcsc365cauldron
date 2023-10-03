@@ -48,7 +48,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if barrel.sku == "SMALL_RED_BARREL" or barrel.sku == "small_red_barrel" or "red" in barrel.sku or barrel.potion_type[0] == 100:
             purchase_list.append(barrel)
-    if num_red_potions < 10:
+    if num_red_potions < 15:
 
         sql = "SELECT gold FROM global_inventory"
         with db.engine.begin() as connection:
