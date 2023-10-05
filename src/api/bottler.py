@@ -15,6 +15,8 @@ class PotionInventory(BaseModel):
     potion_type: list[int]
     quantity: int
 
+#TODO: Make bottler, cash, and barrel ledgers. 
+
 @router.post("/deliver")
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
