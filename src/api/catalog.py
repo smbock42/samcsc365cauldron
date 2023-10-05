@@ -10,24 +10,27 @@ def get_catalog():
     """
     Each unique item combination must have only a single price.
     """
-    #done
+    #working - Oct 5th. 
+    sql = "SELECT * FROM bottle_table"
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text(sql))
 
-    first_row = result.first()
-    num_red_potions = first_row[0]
+    available_potions = []
+    potions = result.all()
+    for potion in potions:
+        if potion.quantity > 0:
+            potion_info = {
+                "sku": potion.SKU,
+                "name": potion.name,
+                "quantity": potion.quantity,
+                "price": potion.price,
+                "potion_type": [potion.R, potion.B, potion.G, potion.D]
+
+            }
+            available_potions.append(potion_info)
+
 
 
 
     # Can return a max of 20 items.
-    if num_red_potions == 0: 
-        return []
-    return [
-            {
-                "sku": "RED_POTION_0",
-                "name": "red potion",
-                "quantity": num_red_potions,
-                "price": 75,
-                "potion_type": [100, 0, 0, 0],
-            }
-        ]
+    return available_potions
