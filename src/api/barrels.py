@@ -146,18 +146,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             potential_quantity = min(remaining_gold / barrel.price, barrel.quantity)
             barrel_info = {
                 "sku":barrel.sku,
-                "quantity":barrel.quantity
+                "quantity":potential_quantity
             }
             purchase_list.append(barrel_info)
             remaining_gold -= barrel.price * potential_quantity
 
     return purchase_list
-    # return [
-    # {
-    #     "sku": "SMALL_RED_BARREL",
-    #     "quantity": quantity,
-    # }
-    # ]
 
 
 
