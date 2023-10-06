@@ -111,7 +111,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         
 
-    sql = "SELECT gold FROM global_inventory"
+    sql = "SELECT gold FROM global_values"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     first_row = result.first()
