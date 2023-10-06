@@ -143,7 +143,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if barrel.price <= remaining_gold:
             
-            potential_quantity = min(remaining_gold / barrel.price, barrel.quantity)
+            potential_quantity = min(remaining_gold // barrel.price, barrel.quantity)
             barrel_info = {
                 "sku":barrel.sku,
                 "quantity":potential_quantity
