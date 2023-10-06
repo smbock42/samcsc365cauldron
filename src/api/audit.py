@@ -22,7 +22,7 @@ def get_inventory():
 
     result = result.all()
     
-    return result
+    return
 
 class Result(BaseModel):
     gold_match: bool
