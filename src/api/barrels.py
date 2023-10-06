@@ -82,6 +82,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
+    print(wholesale_catalog)
     sql = "SELECT * FROM bottle_table"
     restock_quantity = 15
     with db.engine.begin() as connection:
