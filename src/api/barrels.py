@@ -137,10 +137,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     remaining_gold = gold
 
     # Sort the barrels by price per milliliter.
-    wholesale_catalog.sort(key=lambda barrel: barrel.price / barrel.ml_per_barrel)
+    catalog_list.sort(key=lambda barrel: barrel.price / barrel.ml_per_barrel)
 
     # Iterate over the sorted barrels and purchase as many as we can afford.
-    for barrel in wholesale_catalog:
+    for barrel in catalog_list:
         if barrel.price <= remaining_gold:
             
             potential_quantity = min(remaining_gold // barrel.price, barrel.quantity)
