@@ -60,7 +60,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             result = connection.execute(sqlalchemy.text(update_global_gold))
 
         # update barrel table
-        update_barrel_sql = f"UPDATE barrel_table SET quantity = quantity + {barrel.quantity} WHERE sku = '{color}_barrel'"
+        update_barrel_sql = f"UPDATE barrel_table SET quantity = quantity + {barrel.quantity*barrel.ml_per_barrel} WHERE sku = '{color}_barrel'"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(update_barrel_sql))
     return "OK"
