@@ -20,11 +20,11 @@ def get_catalog():
     for potion in potions:
         if potion.quantity > 0:
             potion_info = {
-                "sku": potion.SKU,
+                "sku": potion.sku,
                 "name": potion.name,
                 "quantity": potion.quantity,
                 "price": potion.price,
-                "potion_type": [potion.R, potion.B, potion.G, potion.D]
+                "potion_type": [potion.r, potion.g, potion.b, potion.d]
 
             }
             available_potions.append(potion_info)

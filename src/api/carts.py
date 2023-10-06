@@ -18,7 +18,10 @@ class NewCart(BaseModel):
 @router.post("/")
 def create_cart(new_cart: NewCart):
     """ """
-    sql = "INSERT INTO cart_table (id) VALUES (DEFAULT) RETURNING id"
+    print(new_cart)
+    print(new_cart.customer)
+    #TODO: add customer info here
+    sql = f"INSERT INTO cart_table (id) VALUES (DEFAULT) RETURNING id"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
@@ -77,23 +80,38 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         result = connection.execute(sqlalchemy.text(sql))
 
     #items = result.all()
+    total_potions_bought = 0
+    total_gold_paid = 0
+    results = result.all()
+    for result in results:
+        item_sku = result[0]
+        item_quantity = result[1]
 
-    first_row = result.first()
-    sku = first_row[0]
-    quantity = first_row[1]
+        total_potions_bought += item_quantity
+        #update potions/bottle_table
+        sql = f"UPDATE bottle_table SET quantity = quantity - {item_quantity} WHERE sku = '{item_sku}'"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(sql))
     
+        #get cost of potion
+        sql = f"SELECT price from bottle_table WHERE sku = '{item_sku}'"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(sql))
+        price = result.first()[0]
+        #add ledger for deposit
 
 
-    # subtract potions and add gold
-    sql = f"UPDATE global_inventory SET num_red_potions = num_red_potions - {quantity}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+        total_cost = price * item_quantity
+        total_gold_paid += total_cost
+        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('deposit','Customer with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost} + COALESCE((SELECT balance FROM cash_ledger ORDER BY id DESC LIMIT 1), 0))"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
 
-#TODO: fix price per item to dynamic not 75
-    amount_of_money = 75*quantity
-    sql = f"UPDATE global_inventory SET gold = gold + {amount_of_money}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+        #update global gold
+        update_global_gold = f"UPDATE new_global SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(update_global_gold))
+
 
     #get cart_items
 
@@ -106,4 +124,4 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    return {"total_potions_bought": quantity, "total_gold_paid": amount_of_money}
+    return {"total_potions_bought": total_potions_bought, "total_gold_paid": total_gold_paid}

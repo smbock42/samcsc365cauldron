@@ -21,13 +21,16 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
-    sql = f"UPDATE global_inventory SET num_red_ml = num_red_ml - {potions_delivered[0].quantity*potions_delivered[0].potion_type[0]}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
-
-    sql = f"UPDATE global_inventory SET num_red_potions = num_red_potions + {potions_delivered[0].quantity}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+    for potion in potions_delivered:
+        #update barrel_table (ml)
+        #TODO: change from 100 when mixing colors
+        sql = f"UPDATE barrel_table SET quantity = quantity - {potion.quantity*100} WHERE r= {potion.potion_type[0]} AND g = {potion.potion_type[1]} AND b = {potion.potion_type[2]} AND d = {potion.potion_type[3]}"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(sql))
+        # update bottle_table (potions)
+        sql = f"UPDATE bottle_table SET quantity = quantity + {potion.quantity} WHERE r= {potion.potion_type[0]} AND g = {potion.potion_type[1]} AND b = {potion.potion_type[2]} AND d = {potion.potion_type[3]}"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(sql))
     return "OK"
 
 # Gets called 4 times a day
@@ -42,17 +45,19 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
     # Initial logic: bottle all barrels into red potions.
-    sql = "SELECT num_red_ml from global_inventory"
+    
+    sql = "SELECT sku, quantity, r,g,b,d FROM barrel_table "
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    first_row = result.first()
-    num_red_ml = first_row[0]
-    quantity = num_red_ml//100
-    if quantity == 0:
-        return []
-    return [
-            {
-                "potion_type": [100, 0, 0, 0],
-                "quantity": quantity,
+    results = result.all()
+    bottle_list = []
+    for result in results:
+        #TODO: Change this when I want to start mixing potions
+        quantity = result.quantity//100
+        if quantity != 0:
+            bottle_info = {
+                "potion_type":[result.r,result.g,result.b,result.d],
+                "quantity":quantity
             }
-        ]
+            bottle_list.append(bottle_info)
+    return bottle_list
