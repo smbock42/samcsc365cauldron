@@ -55,7 +55,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
         
         #update global gold variable based on most recent ledger
-        update_global_gold = f"UPDATE new_global SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
+        update_global_gold = f"UPDATE global_values SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(update_global_gold))
 
