@@ -37,6 +37,14 @@ def reset():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
+    #reset carts
+    sql = "DELETE FROM cart_items"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
+        
+    sql = "DELETE FROM cart_table"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
     return "OK"
 
 
