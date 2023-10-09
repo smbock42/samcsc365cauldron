@@ -87,8 +87,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     restock_quantity = 15
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
+
+    #TODO: check balance of barrel ml when purchasing barrels. Change formula to take this into account
+
     #get result of SQL
     potions = result.all()
+    #TODO: hash into table with r,g,b,d values instead of potion name
     potion_restock_dict = {
         "Red Potion":False,
         "Green Potion":False,
