@@ -46,6 +46,15 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
     
+    quantity_check_sku = "SELECT quantity from bottle_table"
+    with db.engine.begin() as connection:
+        quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
+    quantity_check = quantity_check.all()
+    current_amount_of_potions = 0
+    for value in quantity_check:
+        current_amount_of_potions += value[0]
+    available_storage = 300 - current_amount_of_potions
+
     sql = "SELECT sku, quantity, r,g,b,d FROM barrel_table "
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
@@ -54,6 +63,10 @@ def get_bottle_plan():
     for result in results:
         #TODO: Change this when I want to start mixing potions
         quantity = result.quantity//100
+        if quantity > available_storage:
+            quantity = available_storage
+        
+        available_storage -= quantity 
         if quantity != 0:
             bottle_info = {
                 "potion_type":[result.r,result.g,result.b,result.d],
