@@ -73,4 +73,6 @@ def get_bottle_plan():
                 "quantity":quantity
             }
             bottle_list.append(bottle_info)
-    return bottle_list
+    return []
+    #TODO: change back
+    #return bottle_list

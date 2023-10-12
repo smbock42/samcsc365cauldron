@@ -155,8 +155,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
             purchase_list.append(barrel_info)
             remaining_gold -= barrel.price * potential_quantity
-
-    return purchase_list
+    #TODO: change this back
+    return []
+    #return purchase_list
 
 
 
