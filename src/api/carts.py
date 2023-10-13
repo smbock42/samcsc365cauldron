@@ -73,7 +73,16 @@ class CartCheckout(BaseModel):
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     #TODO Check for sku 
+    """
+    TODO
+    
+    Change SQL to this:
 
+    UPDATE catalog
+    SET inventory = catalog.inventory - cart_items.quantity
+    FROM cart_items
+    WHERE catalog.id = cart_items.catalog_id and cart_items.cart_id = :cart_id;
+    """
     # get items from cart_id
     sql = f"SELECT item_sku, quantity from cart_items where cart_id = {cart_id}"
     with db.engine.begin() as connection:
