@@ -22,10 +22,7 @@ def reset():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(reset_cash_ledger_sql))
     
-    #update global gold variable based on most recent ledger
-    update_global_gold = f"UPDATE global_values SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(update_global_gold))
+
 
     #reset bottle_table
     sql = "UPDATE bottle_table SET quantity = 0"

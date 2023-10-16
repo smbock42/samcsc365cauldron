@@ -26,7 +26,7 @@ def get_inventory():
         ml_barrels = connection.execute(sqlalchemy.text(ml_barrels_sql))
     ml_barrels = ml_barrels.first()[0]
     
-    gold_sql = "SELECT gold FROM global_values"
+    gold_sql = "SELECT SUM(amount) from cash_ledger"
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text(gold_sql))
     gold = gold.first()[0]

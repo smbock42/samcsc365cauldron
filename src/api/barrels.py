@@ -54,10 +54,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
         
-        #update global gold variable based on most recent ledger
-        update_global_gold = f"UPDATE global_values SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(update_global_gold))
+
 
         # update barrel table
         update_barrel_sql = f"UPDATE barrel_table SET quantity = quantity + {barrel.quantity*barrel.ml_per_barrel} WHERE sku = '{color}_barrel'"
@@ -116,7 +113,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         
 
-    sql = "SELECT gold FROM global_values"
+    sql = "SELECT SUM(amount) from cash_ledger"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     first_row = result.first()

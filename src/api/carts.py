@@ -116,10 +116,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
 
-        #update global gold
-        update_global_gold = f"UPDATE global_values SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(update_global_gold))
+
 
 
     #get cart_items
