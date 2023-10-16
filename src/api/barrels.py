@@ -93,26 +93,26 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     #get result of SQL
     potions = result.all()
     #TODO: hash into table with r,g,b,d values instead of potion name
-    potion_restock_dict = {
-        "Red Potion":False,
-        "Green Potion":False,
-        "Blue Potion":False
-    }
+    potion_restock_dict = {}
+    
+    catalog_list = []  
     
     #find potions less than the desired restock quantity
     for potion in potions:
-        if potion.quantity <= restock_quantity:
-            potion_restock_dict[potion.name] = True
+        rgbd_arr = (potion.r,potion.g,potion.b,potion.d)
+        if rgbd_arr not in potion_restock_dict and potion.quantity <=restock_quantity:
+            potion_restock_dict[rgbd_arr] = True
+            for barrel in wholesale_catalog:
+                if potion.r > 0 and "RED" in barrel.sku and barrel not in catalog_list:
+                    catalog_list.append(barrel)
+                if potion.g > 0 and "GREEN" in barrel.sku and barrel not in catalog_list:
+                    catalog_list.append(barrel)
+                if potion.b > 0 and "BLUE" in barrel.sku and barrel not in catalog_list:
+                    catalog_list.append(barrel)
+                if potion.d > 0 and "DARK" in barrel.sku and barrel not in catalog_list:
+                    catalog_list.append(barrel)
+    
 
-    # go through wholesale_catalog and sort by color to see how much to buy of each color
-    catalog_list = []
-    for barrel in wholesale_catalog:
-        if "RED" in barrel.sku and potion_restock_dict["Red Potion"] == True:
-            catalog_list.append(barrel)
-        elif "GREEN" in barrel.sku and potion_restock_dict["Green Potion"] == True:
-            catalog_list.append(barrel)
-        elif "BLUE" in barrel.sku and potion_restock_dict["Blue Potion"] == True:
-            catalog_list.append(barrel)
 
         
 
@@ -136,9 +136,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity":barrel.quantity
             }
             purchase_list.append(barrel_info)
-        return []
         # TODO: change back later
-        # return purchase_list
+        return purchase_list
 
     # Otherwise, greedily purchase the most efficient barrels until we run out of gold.
     remaining_gold = gold
@@ -158,8 +157,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             purchase_list.append(barrel_info)
             remaining_gold -= barrel.price * potential_quantity
     #TODO: change this back
-    return []
-    #return purchase_list
+    return purchase_list
 
 
 

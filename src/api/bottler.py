@@ -58,13 +58,26 @@ def get_bottle_plan():
     sql = "SELECT sku, quantity, r,g,b,d FROM barrel_table "
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    results = result.all()
+    barrels = result.all()
+    
+    sql = "SELECT name, quantity, r,g,b,d FROM bottle_table "
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
+    bottles = result.all()
+    
     bottle_list = []
-    for result in results:
+    for bottle in bottles:
         #TODO: Change this when I want to start mixing potions
-        quantity = result.quantity//100
-        if quantity > available_storage:
-            quantity = available_storage
+        for barrel in barrels:
+            if bottle.r != 0 and barrel.r == 100:  
+                r_quantity = barrel.quantity//bottle.r
+            if bottle.g != 0 and barrel.g == 100:
+                g_quantity = barrel.quantity//bottle.g 
+            if bottle.b != 0 and barrel.b == 100:
+                b_quantity = barrel.quantity//bottle.b 
+            if bottle.d != 0 and barrel.d == 100:
+                d_quantity = barrel.quantity//bottle.d 
+
         
         available_storage -= quantity 
         if quantity != 0:
@@ -73,6 +86,5 @@ def get_bottle_plan():
                 "quantity":quantity
             }
             bottle_list.append(bottle_info)
-    return []
     #TODO: change back
-    #return bottle_list
+    return bottle_list

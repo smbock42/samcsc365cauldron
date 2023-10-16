@@ -30,7 +30,7 @@ def get_catalog():
             available_potions.append(potion_info)
 
 
-
+    #TODO: return max of 20 items. 
 
     # Can return a max of 20 items.
     return available_potions
