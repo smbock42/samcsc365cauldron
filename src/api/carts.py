@@ -130,7 +130,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     
-    sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+    # sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql))
     return {"total_potions_bought": total_potions_bought, "total_gold_paid": total_gold_paid}
