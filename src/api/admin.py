@@ -18,6 +18,10 @@ def reset():
     """
     #TODO Reset carts
 
+    delete_cash_ledger = f"DELETE FROM cash_ledger"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(delete_cash_ledger))
+
     reset_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('reset','Reset Store - gold set to $100 and potions/barrels set to 0',100,100)"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(reset_cash_ledger_sql))
