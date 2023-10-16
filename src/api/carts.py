@@ -21,7 +21,7 @@ def create_cart(new_cart: NewCart):
     print(new_cart)
     print(new_cart.customer)
     #TODO: add customer info here
-    sql = f"INSERT INTO cart_table (id) VALUES (DEFAULT) RETURNING id"
+    sql = f"INSERT INTO cart_table (id,customer_name) VALUES (DEFAULT,{new_cart.customer}) RETURNING id"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
@@ -126,9 +126,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
 
     # delete cart at the end
-    sql = f"DELETE FROM cart_table where id = {cart_id}"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+    # sql = f"DELETE FROM cart_table where id = {cart_id}"
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(sql))
     
     # sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
     # with db.engine.begin() as connection:
