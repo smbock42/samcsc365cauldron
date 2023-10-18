@@ -83,7 +83,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     FROM cart_items
     WHERE catalog.id = cart_items.catalog_id and cart_items.cart_id = :cart_id;
     """
-    customer_name_sql = f"SELECT customer_name from cart_items where cart_id = {cart_id}"
+    customer_name_sql = f"SELECT customer_name from cart_table where cart_id = {cart_id}"
     with db.engine.begin() as connection:
         customer_name = connection.execute(sqlalchemy.text(customer_name_sql))
     customer_name = customer_name.first()[0]
