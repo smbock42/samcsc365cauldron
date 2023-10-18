@@ -83,6 +83,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     FROM cart_items
     WHERE catalog.id = cart_items.catalog_id and cart_items.cart_id = :cart_id;
     """
+    customer_name_sql = f"SELECT customer_name from cart_items where cart_id = {cart_id}"
+    with db.engine.begin() as connection:
+        customer_name = connection.execute(sqlalchemy.text(customer_name_sql))
+    customer_name = customer_name.first()[0]
+
+
     # get items from cart_id
     sql = f"SELECT item_sku, quantity from cart_items where cart_id = {cart_id}"
     with db.engine.begin() as connection:
@@ -100,22 +106,29 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         #update potions/bottle_table
         sql = f"UPDATE bottle_table SET quantity = quantity - {item_quantity} WHERE sku = '{item_sku}'"
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(sql))
+            connection.execute(sqlalchemy.text(sql))
     
         #get cost of potion
-        sql = f"SELECT price from bottle_table WHERE sku = '{item_sku}'"
+        sql = f"SELECT price, r, g, b, d from bottle_table WHERE sku = '{item_sku}'"
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(sql))
-        price = result.first()[0]
+            potion = connection.execute(sqlalchemy.text(sql))
+        potion = potion.all()
+        price = potion.price
         #add ledger for deposit
 
 
         total_cost = price * item_quantity
         total_gold_paid += total_cost
-        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('deposit','Customer with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost} + COALESCE((SELECT balance FROM cash_ledger ORDER BY id DESC LIMIT 1), 0))"
+        
+
+        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('deposit','Customer: {customer_name} with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost} + SELECT SUM(amount) from cash_ledger"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
 
+
+        purchase_history_sql = f"INSERT INTO purchase_history(customer_name, potion_sku, quantity, price_per_unit, total_amount, r, g, b, d) VALUES ({customer_name}, {item_sku}, {item_quantity}, {price}, {total_cost}, {potion.r},{potion.g},{potion.b},{potion.d})"
+        with db.engine.begin() as connection:
+            result = connection.execute(sqlalchemy.text(purchase_history_sql))
 
 
 
