@@ -59,24 +59,19 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
     
-    quantity_check_sku = "SELECT quantity from bottle_table"
+    quantity_check_sku = "SELECT name, quantity, r,g,b,d, make_more FROM bottle_table"
     with db.engine.begin() as connection:
         quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
-    quantity_check = quantity_check.all()
+    bottles = quantity_check.all()
     current_amount_of_potions = 0
-    for value in quantity_check:
-        current_amount_of_potions += value[0]
+    for value in bottles:
+        current_amount_of_potions += value.quantity
     available_storage = 300 - current_amount_of_potions
 
     sql = "SELECT sku, quantity, r,g,b,d FROM barrel_table "
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     barrels = result.all()
-    
-    sql = "SELECT name, quantity, r,g,b,d FROM bottle_table "
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
-    bottles = result.all()
     
     available_colors = {
         "r":0,
@@ -93,41 +88,37 @@ def get_bottle_plan():
             available_colors["b"] += barrel.quantity
         elif barrel.d == 100:
             available_colors["d"] += barrel.quantity
-        
-    max_potion_quantities = {}
-    for bottle in bottles:
-        rgbd = (bottle.r,bottle.g,bottle.b,bottle.d)
-        potion_amounts = []
-        potion_amounts.append(available_colors["r"] // bottle.r if bottle.r != 0 else 0)
-        potion_amounts.append(available_colors["g"] // bottle.g if bottle.g != 0 else 0)
-        potion_amounts.append(available_colors["b"] // bottle.b if bottle.b != 0 else 0)
-        potion_amounts.append(available_colors["d"] // bottle.d if bottle.d != 0 else 0)
-        non_zero_vals = [number for number in potion_amounts if number != 0]
-        if len(non_zero_vals) != 0:
-            max_potion_quantities[rgbd] = min(non_zero_vals)
-            
-        
-
-# CONTINUE WORK HERE
-    total_potions = 0
-    for rgbd, max_quantity in max_potion_quantities.items():
-        total_potions+= max_quantity
-        
-    if total_potions > available_storage:
-        for rgbd, max_quantity in max_potion_quantities.items():
-            max_potion_quantities[rgbd] = int(max_quantity * available_storage / total_potions)
-            
-
+        #TODO: sort by descending stock order (restock low stock first)
     bottle_list = []
-    for rgbd, max_quantity in max_potion_quantities.items():
-        quantity = min(max_quantity, available_storage)
-        if quantity > 0:
-            bottle_info = {
-                "potion_type": [rgbd[0],rgbd[1],rgbd[2],rgbd[3]],
-                "quantity": quantity
-            }
-            bottle_list.append(bottle_info)
-            available_storage -= quantity
+    for bottle in bottles:
+        if bottle.make_more == True and available_storage > 0:
+            rgbd = (bottle.r,bottle.g,bottle.b,bottle.d)
+            potion_amounts = []
+            potion_amounts.append(available_colors["r"] // bottle.r if bottle.r != 0 else 0)
+            potion_amounts.append(available_colors["g"] // bottle.g if bottle.g != 0 else 0)
+            potion_amounts.append(available_colors["b"] // bottle.b if bottle.b != 0 else 0)
+            potion_amounts.append(available_colors["d"] // bottle.d if bottle.d != 0 else 0)
+            max_amount = [number for number in potion_amounts if number != 0]
+            if len(max_amount) != 0:
+                max_amount = min(max_amount)
+                potion_quantity = min(max_amount,50,available_storage)
+                for i, color in enumerate(rgbd):
+                    if color != 0:
+                        match i:
+                            case 0:
+                                available_colors["r"] -= potion_quantity * color
+                            case 1:
+                                available_colors["g"] -= potion_quantity * color
+                            case 2:
+                                available_colors["b"] -= potion_quantity * color
+                            case 3:
+                                available_colors["d"] -= potion_quantity * color
+                bottle_info = {
+                    "potion_type": [rgbd[0],rgbd[1],rgbd[2],rgbd[3]],
+                    "quantity":potion_quantity
 
-    #TODO: change back
+                }
+                bottle_list.append(bottle_info)
+                available_storage -= potion_quantity
+
     return bottle_list
