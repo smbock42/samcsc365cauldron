@@ -54,12 +54,21 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     first_row = result.first()
-    exists = first_row[0]
-    if exists:
-        sql = f"INSERT INTO cart_items ( cart_id, item_sku, quantity) VALUES ({cart_id}, '{item_sku}', {cart_item.quantity})"
-
+    cart_exists = first_row[0]
+    if cart_exists:
+        sql = f"SELECT EXISTS (SELECT 1 FROM cart_items WHERE item_sku = '{item_sku}');"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(sql))
+        item_exists = result.first()[0]
+        if item_exists:
+            sql = f"UPDATE cart_items SET quantity = {cart_item.quantity} WHERE item_sku = '{item_sku}'"
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(sql))
+        else:
+            sql = f"INSERT INTO cart_items ( cart_id, item_sku, quantity) VALUES ({cart_id}, '{item_sku}', {cart_item.quantity})"
+
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(sql))
 
         return "OK"
 
