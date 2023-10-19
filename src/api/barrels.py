@@ -1,4 +1,5 @@
 import sqlalchemy
+from json import dumps
 from src import database as db
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -80,10 +81,27 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
+    wholesale_catalog_list = []
+    for barrel in wholesale_catalog:
+        barrel_info = {
+            "sku":barrel.sku,
+            "ml_per_barrel":barrel.ml_per_barrel,
+            "potion_type":barrel.potion_type,
+            "price":barrel.price,
+            "quantity":barrel.quantity
+
+        }
+        wholesale_catalog_list.append(barrel_info)
+    barrel_catalog_json = dumps(wholesale_catalog_list)
+    sql = f"INSERT INTO barrel_catalog_schedule(barrel_catalog) VALUES ('{barrel_catalog_json}')"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
+        
     sql = "SELECT * FROM bottle_table"
     restock_quantity = 15
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
+
 
     #TODO: check balance of barrel ml when purchasing barrels. Change formula to take this into account
 
