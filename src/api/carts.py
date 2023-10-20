@@ -77,7 +77,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
 
 class CartCheckout(BaseModel):
     payment: str
-
+#TODO: Make Cases for Unit Tests Make StaleQuery DB class
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
@@ -154,4 +154,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         # sql = f"DELETE FROM cart_items where cart_id = {cart_id}"
         # with db.engine.begin() as connection:
         #     result = connection.execute(sqlalchemy.text(sql))
+    checked_out_cart_sql = f"UPDATE cart_table SET checked_out = TRUE where id = {cart_id}"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(purchase_history_sql))
     return {"total_potions_bought": total_potions_bought, "total_gold_paid": total_gold_paid}
