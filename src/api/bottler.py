@@ -95,20 +95,20 @@ def get_bottle_plan():
             rgbd = (bottle.r,bottle.g,bottle.b,bottle.d)
             potion_amounts = []
             if bottle.r > 0:
-                potion_amounts.append(available_colors["r"] // bottle.r if bottle.r != 0 else 0)
+                potion_amounts.append(available_colors["r"] // bottle.r if bottle.r > 0 else 0)
             if bottle.g > 0:
-                potion_amounts.append(available_colors["g"] // bottle.g if bottle.g != 0 else 0)
+                potion_amounts.append(available_colors["g"] // bottle.g if bottle.g > 0 else 0)
             if bottle.b > 0:
-                potion_amounts.append(available_colors["b"] // bottle.b if bottle.b != 0 else 0)
+                potion_amounts.append(available_colors["b"] // bottle.b if bottle.b > 0 else 0)
             if bottle.d > 0:
-                potion_amounts.append(available_colors["d"] // bottle.d if bottle.d != 0 else 0)
+                potion_amounts.append(available_colors["d"] // bottle.d if bottle.d > 0 else 0)
             max_amount = [number for number in potion_amounts]
             if len(max_amount) != 0:
                 max_amount = min(max_amount)
-                if max_amount != 0:
+                if max_amount > 0:
                     potion_quantity = min(max_amount,50,available_storage)
                     for i, color in enumerate(rgbd):
-                        if color != 0:
+                        if color > 0:
                             match i:
                                 case 0:
                                     available_colors["r"] -= potion_quantity * color
