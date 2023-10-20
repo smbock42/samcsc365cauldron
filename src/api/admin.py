@@ -46,7 +46,12 @@ def reset():
     sql = "DELETE FROM cart_table"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
+
+    sql = "DELETE FROM purchase_history"
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
     return "OK"
+
 
 
 @router.get("/shop_info/")
