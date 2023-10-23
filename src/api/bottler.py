@@ -59,7 +59,7 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
     
-    quantity_check_sku = "SELECT name, quantity, r,g,b,d, make_more FROM bottle_table"
+    quantity_check_sku = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS amount FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY bottle_table.name ASC;"
     with db.engine.begin() as connection:
         quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
     bottles = quantity_check.all()
