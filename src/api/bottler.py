@@ -59,7 +59,7 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
     
-    quantity_check_sku = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS amount FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY bottle_table.name ASC;"
+    quantity_check_sku = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS amount FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY amount ASC;"
     with db.engine.begin() as connection:
         quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
     bottles = quantity_check.all()
@@ -68,7 +68,7 @@ def get_bottle_plan():
         current_amount_of_potions += value.quantity
     available_storage = 300 - current_amount_of_potions
 
-    sql = "SELECT sku, quantity, r,g,b,d FROM barrel_table "
+    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS amount FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY amount ASC;"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     barrels = result.all()
