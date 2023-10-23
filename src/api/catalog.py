@@ -11,7 +11,7 @@ def get_catalog():
     Each unique item combination must have only a single price.
     """
     #working - Oct 5th. 
-    sql = "SELECT * FROM bottle_table"
+    sql = "SELECT bottle_table.name, bottle_table.sell_in_catalog, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS quantity FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.sell_in_catalog, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
