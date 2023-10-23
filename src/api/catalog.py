@@ -18,7 +18,7 @@ def get_catalog():
     available_potions = []
     potions = result.all()
     for potion in potions:
-        if potion.quantity > 0:
+        if potion.quantity > 0 and potion.sell_in_catalog == True:
             potion_info = {
                 "sku": potion.sku,
                 "name": potion.name,
