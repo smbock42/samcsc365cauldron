@@ -106,7 +106,8 @@ def get_bottle_plan():
             if len(max_amount) != 0:
                 max_amount = min(max_amount)
                 if max_amount > 0:
-                    potion_quantity = min(max_amount,50,available_storage)
+                    current_quantity = 50 - bottle.quantity if 50 - bottle.quantity > 0 else 0
+                    potion_quantity = min(max_amount,current_quantity,available_storage)
                     for i, color in enumerate(rgbd):
                         if color > 0:
                             match i:
