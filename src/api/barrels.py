@@ -99,8 +99,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         result = connection.execute(sqlalchemy.text(sql))
         
     sql = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS quantity FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY quantity ASC;"
-
-    restock_quantity = 15
+    restock_quantity = 15j
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
