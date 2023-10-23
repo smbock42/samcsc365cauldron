@@ -58,7 +58,8 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
 
 
         # update barrel table
-        update_barrel_sql = f"UPDATE barrel_table SET quantity = quantity + {barrel.quantity*barrel.ml_per_barrel} WHERE sku = '{color}_barrel'"
+        update_barrel_sql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Delivered', '{color}_barrel', {barrel.quantity*barrel.ml_per_barrel}, 'Delivered {barrel.quantity} {color}_barrel')"
+        
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(update_barrel_sql))
     return "OK"
