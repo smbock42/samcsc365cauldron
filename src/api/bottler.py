@@ -91,7 +91,7 @@ def get_bottle_plan():
         #TODO: sort by descending stock order (restock low stock first)
     bottle_list = []
     for bottle in bottles:
-        if bottle.make_more == True and available_storage > 0:
+        if bottle.make_more == True and available_storage > 0 and bottle.quantity <= 30:
             rgbd = (bottle.r,bottle.g,bottle.b,bottle.d)
             potion_amounts = []
             if bottle.r > 0:
