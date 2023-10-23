@@ -90,6 +90,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         total_potions_bought += item_quantity
         #update potions/bottle_table
         sql = f"UPDATE bottle_table SET quantity = quantity - {item_quantity} WHERE sku = '{item_sku}'"
+        sql = f"INSERT INTO "
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(sql))
     
@@ -103,14 +104,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
         total_cost = price * item_quantity
         total_gold_paid += total_cost
-        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('deposit','Customer with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost} + COALESCE((SELECT balance FROM cash_ledger ORDER BY id DESC LIMIT 1), 0))"
+        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount) VALUES ('deposit','Customer with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost})"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
-
-        #update global gold
-        update_global_gold = f"UPDATE global_values SET gold = (SELECT balance FROM cash_ledger WHERE id = (SELECT MAX(id) FROM cash_ledger))"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(update_global_gold))
 
 
     #get cart_items
