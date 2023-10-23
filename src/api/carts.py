@@ -114,8 +114,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             item_quantity = result[1]
 
             total_potions_bought += item_quantity
-            #update potions/bottle_table
-            sql = f"UPDATE bottle_table SET quantity = quantity - {item_quantity} WHERE sku = '{item_sku}'"
+            #update potions/bottle_table                
+            sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Sold', 'Sold {item_quantity} amount of {item_sku} to {customer_name}', '{item_sku}', {item_quantity})"
             with db.engine.begin() as connection:
                 connection.execute(sqlalchemy.text(sql))
         
