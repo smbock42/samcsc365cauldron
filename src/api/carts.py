@@ -132,7 +132,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             total_gold_paid += total_cost
             
 
-            add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('deposit','Customer: {customer_name} with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost},{total_cost} + COALESCE((SELECT balance FROM cash_ledger ORDER BY id DESC LIMIT 1), 0))"
+            add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount) VALUES ('deposit','Customer: {customer_name} with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel',{total_cost})"
             with db.engine.begin() as connection:
                 result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
 

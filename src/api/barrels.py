@@ -51,7 +51,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         total_cost = barrel.price*barrel.quantity
 
         # add cash_ledger
-        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount,balance) VALUES ('withdrawl','Purchased {barrel.quantity} amount of {barrel.sku} for ${total_cost} at ${barrel.price} per barrel',-{total_cost},-{total_cost} + COALESCE((SELECT balance FROM cash_ledger ORDER BY id DESC LIMIT 1), 0))"
+        add_cash_ledger_sql = f"INSERT INTO cash_ledger(type,description,amount) VALUES ('withdrawl','Purchased {barrel.quantity} amount of {barrel.sku} for ${total_cost} at ${barrel.price} per barrel',-{total_cost})"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(add_cash_ledger_sql))
         
