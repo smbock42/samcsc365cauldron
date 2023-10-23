@@ -24,24 +24,31 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     for potion in potions_delivered:
         #update barrel_table (ml)
         #TODO: change from 100 when mixing colors
-        rsql = f"UPDATE barrel_table SET quantity = quantity - {potion.quantity * potion.potion_type[0]} WHERE r = 100"
+        sku_sql = f"SELECT sku FROM bottle_table WHERE r = {potion.potion_type[0]} and g = {potion.potion_type[1]} and b = {potion.potion_type[2]} and d = {potion.potion_type[3]}"
         with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(rsql))
-        gsql = f"UPDATE barrel_table SET quantity = quantity - {potion.quantity * potion.potion_type[1]} WHERE g = 100"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(gsql))
-        bsql = f"UPDATE barrel_table SET quantity = quantity - {potion.quantity * potion.potion_type[2]} WHERE b = 100"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(bsql))
-        dsql = f"UPDATE barrel_table SET quantity = quantity - {potion.quantity * potion.potion_type[3]} WHERE d = 100"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(dsql))
+            sku = connection.execute(sqlalchemy.text(sku_sql))
+        sku = sku.first()[0]    
         
-        
+        if potion.potion_type[0] > 0:
+            rsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(rsql))
+        if potion.potion_type[1] > 0:
+            gsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'green_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(gsql))
+        if potion.potion_type[2] > 0:
+            bsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'blue_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(bsql))
+        if potion.potion_type[3] > 0:
+            dsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'dark_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
+            with db.engine.begin() as connection:
+                result = connection.execute(sqlalchemy.text(dsql))
         
         
         # update bottle_table (potions)
-        sql = f"UPDATE bottle_table SET quantity = quantity + {potion.quantity} WHERE r= {potion.potion_type[0]} AND g = {potion.potion_type[1]} AND b = {potion.potion_type[2]} AND d = {potion.potion_type[3]}"
+        sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Delivered', 'Delivered {potion}', '{sku}', {potion.quantity})"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(sql))
     return "OK"
@@ -59,16 +66,16 @@ def get_bottle_plan():
 
     # Initial logic: bottle all barrels into red potions.
     
-    quantity_check_sku = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS amount FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY amount ASC;"
+    quantity_check_sku = "SELECT bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more, SUM(bottle_ledger.amount) AS quantity FROM bottle_table INNER JOIN bottle_ledger ON bottle_table.sku = bottle_ledger.sku GROUP BY bottle_table.name, bottle_table.sku, bottle_table.price, bottle_table.r, bottle_table.g, bottle_table.b, bottle_table.d, bottle_table.make_more ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
         quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
     bottles = quantity_check.all()
     current_amount_of_potions = 0
     for value in bottles:
-        current_amount_of_potions += value.quantity
+        current_amount_of_potions += int(value.quantity)
     available_storage = 300 - current_amount_of_potions
 
-    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS amount FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY amount ASC;"
+    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
     barrels = result.all()
@@ -81,13 +88,13 @@ def get_bottle_plan():
     }
     for barrel in barrels:
         if barrel.r == 100:
-            available_colors["r"] += barrel.quantity
+            available_colors["r"] += int(barrel.quantity)
         elif barrel.g == 100:
-            available_colors["g"] += barrel.quantity
+            available_colors["g"] += int(barrel.quantity)
         elif barrel.b == 100:
-            available_colors["b"] += barrel.quantity
+            available_colors["b"] += int(barrel.quantity)
         elif barrel.d == 100:
-            available_colors["d"] += barrel.quantity
+            available_colors["d"] += int(barrel.quantity)
         #TODO: sort by descending stock order (restock low stock first)
     bottle_list = []
     for bottle in bottles:
@@ -106,7 +113,7 @@ def get_bottle_plan():
             if len(max_amount) != 0:
                 max_amount = min(max_amount)
                 if max_amount > 0:
-                    current_quantity = 50 - bottle.quantity if 50 - bottle.quantity > 0 else 0
+                    current_quantity = 50 - int(bottle.quantity) if 50 - int(bottle.quantity) > 0 else 0
                     potion_quantity = min(max_amount,current_quantity,available_storage)
                     for i, color in enumerate(rgbd):
                         if color > 0:
