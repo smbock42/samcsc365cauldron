@@ -28,12 +28,12 @@ def reset():
         result = connection.execute(sqlalchemy.text(update_global_gold))
 
     #reset bottle_table
-    sql = "UPDATE bottle_table SET quantity = 0"
+    sql = "DELETE FROM bottle_ledger"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
     #reset barrel_table
-    sql = "UPDATE barrel_table SET quantity = 0"
+    sql = "DELETE FROM barrel_ledger"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
 
