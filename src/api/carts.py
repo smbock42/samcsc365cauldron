@@ -156,5 +156,5 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         #     result = connection.execute(sqlalchemy.text(sql))
     checked_out_cart_sql = f"UPDATE cart_table SET checked_out = TRUE where id = {cart_id}"
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(purchase_history_sql))
+        result = connection.execute(sqlalchemy.text(checked_out_cart_sql))
     return {"total_potions_bought": total_potions_bought, "total_gold_paid": total_gold_paid}
