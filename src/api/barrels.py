@@ -98,16 +98,26 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
         
-    sql = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
-    restock_quantity = 15
+    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, COALESCE(SUM(barrel_ledger.amount),0) AS quantity FROM barrel_table LEFT JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
+        current_barrel_inventory = result.all()
+
+    barrel_inventory = {}
+    for barrel in current_barrel_inventory:
+        barrel_inventory[barrel.sku] = int(barrel.quantity)
+
+
+    sql = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
+    restock_quantity = 10
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text(sql))
+        potions = result.all()
 
 
     #TODO: check balance of barrel ml when purchasing barrels. Change formula to take this into account
 
     #get result of SQL
-    potions = result.all()
     #TODO: hash into table with r,g,b,d values instead of potion name
     potion_restock_dict = {}
     
@@ -119,13 +129,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         if rgbd_arr not in potion_restock_dict and int(potion.quantity) <=restock_quantity:
             potion_restock_dict[rgbd_arr] = True
             for barrel in wholesale_catalog:
-                if potion.r > 0 and "RED" in barrel.sku and barrel not in catalog_list:
+                if potion.r > 0 and "RED" in barrel.sku and barrel not in catalog_list and barrel_inventory["red_barrel"] <= 20000:
                     catalog_list.append(barrel)
-                if potion.g > 0 and "GREEN" in barrel.sku and barrel not in catalog_list:
+                if potion.g > 0 and "GREEN" in barrel.sku and barrel not in catalog_list and barrel_inventory["green_barrel"] <= 20000:
                     catalog_list.append(barrel)
-                if potion.b > 0 and "BLUE" in barrel.sku and barrel not in catalog_list:
+                if potion.b > 0 and "BLUE" in barrel.sku and barrel not in catalog_list and barrel_inventory["blue_barrel"] <= 20000:
                     catalog_list.append(barrel)
-                if potion.d > 0 and "DARK" in barrel.sku and barrel not in catalog_list:
+                if potion.d > 0 and "DARK" in barrel.sku and barrel not in catalog_list and barrel_inventory["dark_barrel"] <= 20000:
                     catalog_list.append(barrel)
     
 
