@@ -21,11 +21,12 @@ def create_cart(new_cart: NewCart):
     print(new_cart)
     print(new_cart.customer)
     #TODO: add customer info here
-    sql = f"INSERT INTO cart_table (id,customer_name) VALUES (DEFAULT,:customer_name) RETURNING id"
+    sql = "INSERT INTO cart_table (id,customer_name) VALUES (DEFAULT,%s) RETURNING id"
     with db.engine.begin() as connection:
-        result = connection.execute(sql, new_cart.customer)
-        cart_id= result.first()[0]
+        result = connection.execute(sql, (new_cart.customer,))
+        cart_id = result.first()[0]
     return {"cart_id": cart_id}
+
 
 
 @router.get("/{cart_id}")
