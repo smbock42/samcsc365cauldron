@@ -21,12 +21,10 @@ def create_cart(new_cart: NewCart):
     print(new_cart)
     print(new_cart.customer)
     #TODO: add customer info here
-    sql = f"INSERT INTO cart_table (id,customer_name) VALUES (DEFAULT,'{new_cart.customer}') RETURNING id"
+    sql = f"INSERT INTO cart_table (id,customer_name) VALUES (DEFAULT,:customer_name) RETURNING id"
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
-
-    first_row = result.first()
-    cart_id = first_row[0]
+        result = connection.execute(sql, new_cart.customer)
+        cart_id= result.first()[0]
     return {"cart_id": cart_id}
 
 
