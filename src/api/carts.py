@@ -54,7 +54,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         cart_exists = result.first()[0]
 
         if cart_exists:
-            item_exists_sql = "SELECT EXISTS (SELECT 1 FROM cart_items WHERE item_sku = ':item_sku' and cart_id = :cart_id);"
+            item_exists_sql = "SELECT EXISTS (SELECT 1 FROM cart_items WHERE item_sku = :item_sku and cart_id = :cart_id);"
             result = connection.execute(statement=sqlalchemy.text(item_exists_sql),parameters={"item_sku":item_sku,"cart_id":cart_id})
             item_exists = result.first()[0]
 
@@ -62,7 +62,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
                 update_cart_sql = f"UPDATE cart_items SET quantity = :cart_item_quantity WHERE item_sku = ':item_sku' and cart_id = :cart_id"
                 result = connection.execute(statement=sqlalchemy.text(update_cart_sql),parameters={"cart_item_quantity":cart_item.quantity,"item_sku":item_sku,"cart_id":cart_id})
             else:
-                sql = f"INSERT INTO cart_items ( cart_id, item_sku, quantity) VALUES (:cart_id, ':item_sku', :cart_item_quantity)"
+                sql = f"INSERT INTO cart_items ( cart_id, item_sku, quantity) VALUES (:cart_id, :item_sku, :cart_item_quantity)"
                 result = connection.execute(statement=sqlalchemy.text(sql),parameters={"cart_id":cart_id,"item_sku":item_sku,"cart_item_quantity":cart_item.quantity})
 
             return "OK"
