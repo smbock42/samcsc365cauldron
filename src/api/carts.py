@@ -59,7 +59,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
             item_exists = result.first()[0]
 
             if item_exists:
-                update_cart_sql = f"UPDATE cart_items SET quantity = :cart_item_quantity WHERE item_sku = ':item_sku' and cart_id = :cart_id"
+                update_cart_sql = f"UPDATE cart_items SET quantity = :cart_item_quantity WHERE item_sku = :item_sku and cart_id = :cart_id"
                 result = connection.execute(statement=sqlalchemy.text(update_cart_sql),parameters={"cart_item_quantity":cart_item.quantity,"item_sku":item_sku,"cart_id":cart_id})
             else:
                 sql = f"INSERT INTO cart_items ( cart_id, item_sku, quantity) VALUES (:cart_id, :item_sku, :cart_item_quantity)"
@@ -107,11 +107,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
 
                 total_potions_bought += item_quantity
                 #update potions/bottle_table                
-                bottle_ledger_sql = "INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Sold', :description, ':item_sku', :item_quantity)"
+                bottle_ledger_sql = "INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Sold', :description, :item_sku, :item_quantity)"
                 connection.execute(statement=sqlalchemy.text(bottle_ledger_sql),parameters={"description":f"Sold {item_quantity} amount of {item_sku} to {customer_name}","item_sku":item_sku,"item_quantity":-item_quantity})
             
                 #get cost of potion
-                get_potion_sql = "SELECT price, r, g, b, d from bottle_table WHERE sku = ':item_sku'"
+                get_potion_sql = "SELECT price, r, g, b, d from bottle_table WHERE sku = :item_sku"
                 potion = connection.execute(statement=sqlalchemy.text(get_potion_sql),parameters={"item_sku":item_sku})
                 potion = potion.all()[0]
                 price = potion.price
@@ -126,7 +126,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 result = connection.execute(statement=sqlalchemy.text(add_cash_ledger_sql),parameters={"description":f"Customer: {customer_name} with cart_id: {cart_id} purchased {item_quantity} amount of {item_sku} for ${total_cost} at ${price} per barrel","total_cost":total_cost})
 
 
-                purchase_history_sql = "INSERT INTO purchase_history(customer_name, potion_sku, quantity, price_per_unit, total_amount, r, g, b, d) VALUES (':customer_name', ':item_sku', :item_quantity, :price, :total_cost, :potion_r,:potion_g,:potion_b,:potion_d)"
+                purchase_history_sql = "INSERT INTO purchase_history(customer_name, potion_sku, quantity, price_per_unit, total_amount, r, g, b, d) VALUES (:customer_name, :item_sku, :item_quantity, :price, :total_cost, :potion_r,:potion_g,:potion_b,:potion_d)"
                 result = connection.execute(statement=sqlalchemy.text(purchase_history_sql),parameters={"customer_name":customer_name,"item_sku":item_sku,"item_quantity":item_quantity,"price":price,"total_cost":total_cost,"potion_r":potion.r,"potion_g":potion.g,"potion_b":potion.b,"potion_d":potion.d})
 
 
