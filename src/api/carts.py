@@ -36,8 +36,8 @@ def get_cart(cart_id: int):
     sql = f"SELECT EXISTS (SELECT 1 FROM cart_table WHERE id = {cart_id});"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    first_row = result.first()
-    exists = first_row[0]
+        first_row = result.first()
+        exists = first_row[0]
     return {exists}
 
 
@@ -52,13 +52,13 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     sql = f"SELECT EXISTS (SELECT 1 FROM cart_table WHERE id = {cart_id});"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    first_row = result.first()
-    cart_exists = first_row[0]
+        first_row = result.first()
+        cart_exists = first_row[0]
     if cart_exists:
         sql = f"SELECT EXISTS (SELECT 1 FROM cart_items WHERE item_sku = '{item_sku}' and cart_id = {cart_id});"
         with db.engine.begin() as connection:
             result = connection.execute(sqlalchemy.text(sql))
-        item_exists = result.first()[0]
+            item_exists = result.first()[0]
         if item_exists:
             sql = f"UPDATE cart_items SET quantity = {cart_item.quantity} WHERE item_sku = '{item_sku}' and cart_id = {cart_id}"
             with db.engine.begin() as connection:
@@ -94,7 +94,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     cart_sql = f"SELECT customer_name, checked_out from cart_table where id = {cart_id}"
     with db.engine.begin() as connection:
         cart_info = connection.execute(sqlalchemy.text(cart_sql))
-    cart_info = cart_info.all()[0]
+        cart_info = cart_info.all()[0]
     customer_name = cart_info.customer_name
     total_potions_bought = 0
     total_gold_paid = 0
@@ -122,7 +122,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             sql = f"SELECT price, r, g, b, d from bottle_table WHERE sku = '{item_sku}'"
             with db.engine.begin() as connection:
                 potion = connection.execute(sqlalchemy.text(sql))
-            potion = potion.all()[0]
+                potion = potion.all()[0]
             price = potion.price
             #add ledger for deposit
 

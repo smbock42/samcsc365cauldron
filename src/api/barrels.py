@@ -145,7 +145,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     sql = "SELECT SUM(amount) from cash_ledger"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    first_row = result.first()
+        first_row = result.first()
     gold = int(float(first_row[0])*.8)
     
     # Calculate the total amount of gold required to purchase all of the barrels.

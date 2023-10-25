@@ -27,7 +27,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         sku_sql = f"SELECT sku FROM bottle_table WHERE r = {potion.potion_type[0]} and g = {potion.potion_type[1]} and b = {potion.potion_type[2]} and d = {potion.potion_type[3]}"
         with db.engine.begin() as connection:
             sku = connection.execute(sqlalchemy.text(sku_sql))
-        sku = sku.first()[0]    
+            sku = sku.first()[0]    
         
         if potion.potion_type[0] > 0:
             rsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
@@ -78,7 +78,7 @@ def get_bottle_plan():
     sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(sql))
-    barrels = result.all()
+        barrels = result.all()
     
     available_colors = {
         "r":0,
