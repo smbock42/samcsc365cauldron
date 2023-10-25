@@ -21,36 +21,58 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
-    for potion in potions_delivered:
-        #update barrel_table (ml)
-        #TODO: change from 100 when mixing colors
-        sku_sql = f"SELECT sku FROM bottle_table WHERE r = {potion.potion_type[0]} and g = {potion.potion_type[1]} and b = {potion.potion_type[2]} and d = {potion.potion_type[3]}"
-        with db.engine.begin() as connection:
-            sku = connection.execute(sqlalchemy.text(sku_sql))
+    with db.engine.begin() as connection:
+        for potion in potions_delivered:
+            #update barrel_table (ml)
+            #TODO: change from 100 when mixing colors
+            sku_sql = f"SELECT sku FROM bottle_table WHERE r = :r and g = :g and b = :b and d = :d"
+            parameters={
+                "r":potion.potion_type[0],
+                "g":potion.potion_type[1],
+                "b":potion.potion_type[2],
+                "d":potion.potion_type[3]
+            }
+            sku = connection.execute(statement=sqlalchemy.text(sku_sql),parameters=parameters)
             sku = sku.first()[0]    
-        
-        if potion.potion_type[0] > 0:
-            rsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(rsql))
-        if potion.potion_type[1] > 0:
-            gsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'green_barrel', -{potion.quantity * potion.potion_type[1]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(gsql))
-        if potion.potion_type[2] > 0:
-            bsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'blue_barrel', -{potion.quantity * potion.potion_type[2]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(bsql))
-        if potion.potion_type[3] > 0:
-            dsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'dark_barrel', -{potion.quantity * potion.potion_type[3]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(dsql))
-        
-        
-        # update bottle_table (potions)
-        sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Delivered', 'Delivered {potion}', '{sku}', {potion.quantity})"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(sql))
+            
+            if potion.potion_type[0] > 0:
+                rsql = "INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', :amount, :description)"
+                parameters = {
+                    "amount":-(potion.quantity *potion.potion_type[0]),
+                    "description":f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(rsql),parameters=parameters)
+            if potion.potion_type[1] > 0:
+                gsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'green_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[1]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(gsql),parameters=parameters)
+            if potion.potion_type[2] > 0:
+                bsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'blue_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[2]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(bsql), parameters=parameters)
+            if potion.potion_type[3] > 0:
+                dsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'dark_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[3]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(dsql),parameters=parameters)
+            
+            
+            # update bottle_table (potions)
+            sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Delivered', :description, :sku, :amount)"
+            parameters = {
+                "description": f"Delivered {potion}",
+                "sku": sku,
+                "amount":potion.quantity
+            }
+            result = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     return "OK"
 
 # Gets called 4 times a day
