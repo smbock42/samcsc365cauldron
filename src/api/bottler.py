@@ -87,21 +87,20 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
     # Initial logic: bottle all barrels into red potions.
-    
-    quantity_check_sku = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
-        quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
-    bottles = quantity_check.all()
-    current_amount_of_potions = 0
-    for value in bottles:
-        current_amount_of_potions += int(value.quantity)
-    available_storage = 300 - current_amount_of_potions
+    
+        quantity_check_sku = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
+        quantity_check = connection.execute(statement=sqlalchemy.text(quantity_check_sku))
+        bottles = quantity_check.all()
+        current_amount_of_potions = 0
+        for value in bottles:
+            current_amount_of_potions += int(value.quantity)
+        available_storage = 300 - current_amount_of_potions
 
-    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
+        sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
+        result = connection.execute(statement=sqlalchemy.text(sql))
         barrels = result.all()
-    
+        
     available_colors = {
         "r":0,
         "g":0,
