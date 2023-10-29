@@ -21,36 +21,58 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
-    for potion in potions_delivered:
-        #update barrel_table (ml)
-        #TODO: change from 100 when mixing colors
-        sku_sql = f"SELECT sku FROM bottle_table WHERE r = {potion.potion_type[0]} and g = {potion.potion_type[1]} and b = {potion.potion_type[2]} and d = {potion.potion_type[3]}"
-        with db.engine.begin() as connection:
-            sku = connection.execute(sqlalchemy.text(sku_sql))
-        sku = sku.first()[0]    
-        
-        if potion.potion_type[0] > 0:
-            rsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', -{potion.quantity * potion.potion_type[0]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(rsql))
-        if potion.potion_type[1] > 0:
-            gsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'green_barrel', -{potion.quantity * potion.potion_type[1]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(gsql))
-        if potion.potion_type[2] > 0:
-            bsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'blue_barrel', -{potion.quantity * potion.potion_type[2]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(bsql))
-        if potion.potion_type[3] > 0:
-            dsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'dark_barrel', -{potion.quantity * potion.potion_type[3]}, 'Bottled {potion.quantity} {sku} ({potion.potion_type})')"
-            with db.engine.begin() as connection:
-                result = connection.execute(sqlalchemy.text(dsql))
-        
-        
-        # update bottle_table (potions)
-        sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Delivered', 'Delivered {potion}', '{sku}', {potion.quantity})"
-        with db.engine.begin() as connection:
-            result = connection.execute(sqlalchemy.text(sql))
+    with db.engine.begin() as connection:
+        for potion in potions_delivered:
+            #update barrel_table (ml)
+            #TODO: change from 100 when mixing colors
+            sku_sql = f"SELECT sku FROM bottle_table WHERE r = :r and g = :g and b = :b and d = :d"
+            parameters={
+                "r":potion.potion_type[0],
+                "g":potion.potion_type[1],
+                "b":potion.potion_type[2],
+                "d":potion.potion_type[3]
+            }
+            sku = connection.execute(statement=sqlalchemy.text(sku_sql),parameters=parameters)
+            sku = sku.first()[0]    
+            
+            if potion.potion_type[0] > 0:
+                rsql = "INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'red_barrel', :amount, :description)"
+                parameters = {
+                    "amount":-(potion.quantity *potion.potion_type[0]),
+                    "description":f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(rsql),parameters=parameters)
+            if potion.potion_type[1] > 0:
+                gsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'green_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[1]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(gsql),parameters=parameters)
+            if potion.potion_type[2] > 0:
+                bsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'blue_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[2]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(bsql), parameters=parameters)
+            if potion.potion_type[3] > 0:
+                dsql = f"INSERT INTO barrel_ledger (type, sku, amount, description) VALUES ('Bottled', 'dark_barrel', :amount, :description)"
+                parameters = {
+                    "amount": -(potion.quantity * potion.potion_type[3]),
+                    "description": f"Bottled {potion.quantity} {sku} ({potion.potion_type})"
+                }
+                result = connection.execute(statement=sqlalchemy.text(dsql),parameters=parameters)
+            
+            
+            # update bottle_table (potions)
+            sql = f"INSERT INTO bottle_ledger (type, description, sku, amount) VALUES ('Delivered', :description, :sku, :amount)"
+            parameters = {
+                "description": f"Delivered {potion}",
+                "sku": sku,
+                "amount":potion.quantity
+            }
+            result = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     return "OK"
 
 # Gets called 4 times a day
@@ -65,21 +87,20 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
     # Initial logic: bottle all barrels into red potions.
-    
-    quantity_check_sku = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
     with db.engine.begin() as connection:
-        quantity_check = connection.execute(sqlalchemy.text(quantity_check_sku))
-    bottles = quantity_check.all()
-    current_amount_of_potions = 0
-    for value in bottles:
-        current_amount_of_potions += int(value.quantity)
-    available_storage = 300 - current_amount_of_potions
+    
+        quantity_check_sku = "SELECT bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more,COALESCE(SUM(bottle_ledger.amount),0)AS quantity FROM bottle_table LEFT JOIN bottle_ledger ON bottle_table.sku=bottle_ledger.sku GROUP BY bottle_table.name,bottle_table.sku,bottle_table.price,bottle_table.r,bottle_table.g,bottle_table.b,bottle_table.d,bottle_table.make_more ORDER BY quantity ASC;"
+        quantity_check = connection.execute(statement=sqlalchemy.text(quantity_check_sku))
+        bottles = quantity_check.all()
+        current_amount_of_potions = 0
+        for value in bottles:
+            current_amount_of_potions += int(value.quantity)
+        available_storage = 300 - current_amount_of_potions
 
-    sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
-    with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(sql))
-    barrels = result.all()
-    
+        sql = "SELECT barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d, SUM(barrel_ledger.amount) AS quantity FROM barrel_table INNER JOIN barrel_ledger ON barrel_table.sku = barrel_ledger.sku GROUP BY barrel_table.sku, barrel_table.r, barrel_table.g, barrel_table.b, barrel_table.d ORDER BY quantity ASC;"
+        result = connection.execute(statement=sqlalchemy.text(sql))
+        barrels = result.all()
+        
     available_colors = {
         "r":0,
         "g":0,
