@@ -54,7 +54,7 @@ def search_orders(
     time is 5 total line items.
     """
     with db.engine.begin() as connection:
-        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
+        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as item_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
         sort_col = sort_col.value
         sort_order = sort_order.value
 
