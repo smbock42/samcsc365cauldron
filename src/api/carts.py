@@ -54,7 +54,7 @@ def search_orders(
     time is 5 total line items.
     """
     with db.engine.begin() as connection:
-        sql = "SELECT purchase_history.created_at as time, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name FROM purchase_history LEFT JOIN bottle_table ON bottle_table.sku = purchase_history.potion_sku"
+        sql = "SELECT purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name FROM purchase_history LEFT JOIN bottle_table ON bottle_table.sku = purchase_history.potion_sku"
         print(f"customer_name: {customer_name}\npotion_sku: {potion_sku}\nsearch_page: {search_page}\nsort_col: {sort_col.value}\nsort_order: {sort_order.value}")
         sort_col = sort_col.value
         sort_order = sort_order.value
@@ -80,7 +80,7 @@ def search_orders(
 
     previous = "" if offset == 0 else search_page -1
     next = "" if offset + 5 >= len(results) else search_page + 1
-    results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.line_item_total}, "timestamp":{item.time}} for i, item in enumerate(page_results)]
+    results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.line_item_total}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
     return {
         "previous": previous,
         "next": next,
