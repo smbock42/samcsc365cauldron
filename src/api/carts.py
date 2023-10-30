@@ -54,7 +54,7 @@ def search_orders(
     time is 5 total line items.
     """
     with db.engine.begin() as connection:
-        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as item_sku, purchase_history.quantity as quantity, purchase_history.total_amount as line_item_total, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
+        sql = "select purchase_history.id as id, purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as item_sku, purchase_history.quantity as quantity, purchase_history.total_amount as line_item_total, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
         sort_col = sort_col.value
         sort_order = sort_order.value
 
@@ -72,34 +72,34 @@ def search_orders(
         
         sql += f" ORDER BY {sort_col} {sort_order}"
 
-        sql += ") as subquery1) as subquery2"
-
-        sql += " WHERE line_item_id >= :cursor"
-        
         if search_page == "":
             search_page = 1
         else:
             search_page = int(search_page)
+        sql += f" OFFSET :offset"
+        
+        sql += f" LIMIT 6"
+        
+
         parameters = {
             "customer_name":f"%{customer_name}%",
             "potion_sku":f"%{potion_sku}%",
-            "cursor":(search_page-1)*5
+            "offset":(search_page-1)*5
         }
         print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
     
     if len(results) > 0:
-        first_item_id = results[0].line_item_id
         previous = "" if search_page == 1 else search_page -1
-        next = "" if first_item_id + 5 >= len(results) else search_page + 1
+        next = "" if len(results) != 6 else search_page + 1
     else:
         previous = ""
         next = ""
 
     page_results = results[:5]
 
-    results = [{"line_item_id":i, "item_sku":f"{item.quantity} {item.item_sku}", "customer_name": {item.customer_name},"line_item_total":{item.line_item_total}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
+    results = [{"line_item_id":item.id, "item_sku":f"{item.quantity} {item.item_sku}", "customer_name": {item.customer_name},"line_item_total":{item.line_item_total}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
     return {
         "previous": previous,
         "next": next,
