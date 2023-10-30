@@ -59,11 +59,11 @@ def search_orders(
         sort_col = sort_col.value
         sort_order = sort_order.value
         if customer_name != "" and potion_sku != "":
-            sql += f" WHERE customer_name LIKE :customer_name AND potion_sku LIKE :potion_sku"
+            sql += f" WHERE customer_name ILIKE :customer_name AND potion_sku ILIKE :potion_sku"
         elif customer_name != "":
-            sql += f" WHERE customer_name LIKE :customer_name"
+            sql += f" WHERE customer_name ILIKE :customer_name"
         elif potion_sku != "":
-            sql += f" WHERE potion_sku LIKE :potion_sku"
+            sql += f" WHERE potion_sku ILIKE :potion_sku"
         
         sql += f" ORDER BY {sort_col} {sort_order}"
 
