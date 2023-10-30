@@ -74,6 +74,7 @@ def search_orders(
         #print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
+    print("full_results: ", results)
     print("search_page: ",search_page)
     if search_page == "":
         search_page = 1
