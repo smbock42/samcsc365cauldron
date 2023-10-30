@@ -95,7 +95,7 @@ def search_orders(
 
     page_results = results[:5]
 
-    results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
+    results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.item_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
     return {
         "previous": previous,
         "next": next,
