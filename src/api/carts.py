@@ -83,7 +83,7 @@ def search_orders(
         parameters = {
             "customer_name":f"%{customer_name}%",
             "potion_sku":f"%{potion_sku}%",
-            "cursor":search_page*5
+            "cursor":(search_page-1)*5
         }
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
@@ -92,6 +92,9 @@ def search_orders(
         first_item_id = results[0].line_item_id
         previous = "" if search_page == 1 else search_page -1
         next = "" if first_item_id + 5 >= len(results) else search_page + 1
+    else:
+        previous = ""
+        next = ""
 
     page_results = results[:5]
 
