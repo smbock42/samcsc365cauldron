@@ -71,7 +71,7 @@ def search_orders(
             "customer_name":customer_name,
             "potion_sku":potion_sku,
         }
-        print(sql)
+        #print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
     print("search_page: ",search_page)
@@ -84,6 +84,7 @@ def search_orders(
     previous = "" if search_page == 0 else search_page -1
     next = "" if offset + 5 >= len(results) else search_page + 1
     results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
+    print(f"previous: {previous}\nnext: {next}\nresults: {results}")
     return {
         "previous": previous,
         "next": next,
