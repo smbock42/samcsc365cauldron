@@ -54,38 +54,48 @@ def search_orders(
     time is 5 total line items.
     """
     with db.engine.begin() as connection:
-        sql = "SELECT purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name FROM purchase_history LEFT JOIN bottle_table ON bottle_table.sku = purchase_history.potion_sku"
-        print(f"customer_name: {customer_name}\npotion_sku: {potion_sku}\nsearch_page: {search_page}\nsort_col: {sort_col.value}\nsort_order: {sort_order.value}")
+        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
         sort_col = sort_col.value
         sort_order = sort_order.value
+
+        filter_sql = ""
         if customer_name != "" and potion_sku != "":
-            sql += f" WHERE customer_name ILIKE :customer_name AND potion_sku ILIKE :potion_sku"
+            filter_sql += f" WHERE customer_name ILIKE :customer_name AND potion_sku ILIKE :potion_sku"
         elif customer_name != "":
-            sql += f" WHERE customer_name ILIKE :customer_name"
+            filter_sql += f" WHERE customer_name ILIKE :customer_name"
         elif potion_sku != "":
-            sql += f" WHERE potion_sku ILIKE :potion_sku"
+            filter_sql += f" WHERE potion_sku ILIKE :potion_sku"
+
+
+
+        sql += filter_sql
         
         sql += f" ORDER BY {sort_col} {sort_order}"
 
+        sql += ") as subquery1) as subquery2"
+
+        sql += " WHERE line_item_id >= :cursor"
+        
+        if search_page == "":
+            search_page = 1
+        else:
+            search_page = int(search_page)
         parameters = {
-            "customer_name":f"{customer_name}%",
-            "potion_sku":f"{potion_sku}%",
+            "customer_name":f"%{customer_name}%",
+            "potion_sku":f"%{potion_sku}%",
+            "cursor":search_page*5
         }
-        #print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
-    print("full_results: ", results)
-    print("search_page: ",search_page)
-    if search_page == "":
-        search_page = 0
-    search_page = int(search_page)
-    offset = search_page * 5
-    page_results = results[offset:offset+5]
+    
+    if len(results) > 0:
+        first_item_id = results[0].line_item_id
+        previous = "" if search_page == 1 else search_page -1
+        next = "" if first_item_id + 5 >= len(results) else search_page + 1
 
-    previous = "" if search_page == 0 else search_page -1
-    next = "" if offset + 5 >= len(results) else search_page + 1
+    page_results = results[:5]
+
     results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
-    print(f"previous: {previous}\nnext: {next}\nresults: {results}")
     return {
         "previous": previous,
         "next": next,
