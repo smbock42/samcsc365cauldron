@@ -74,6 +74,8 @@ def search_orders(
         print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
+    if search_page == "":
+        search_page = 0
     search_page = int(search_page)
     offset = search_page * 5
     page_results = results[offset:offset+5]
