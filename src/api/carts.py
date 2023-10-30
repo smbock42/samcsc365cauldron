@@ -53,19 +53,33 @@ def search_orders(
     Your results must be paginated, the max results you can return at any
     time is 5 total line items.
     """
+    with db.engine.begin() as connection:
+        sql = "SELECT purchase_history.created_at as time, purchase_history.customer_name as customer_name, purchase_history.potion_sku as potion_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name FROM purchase_history LEFT JOIN bottle_table ON bottle_table.sku = purchase_history.potion_sku"
+        print(f"customer_name: {customer_name}\npotion_sku: {potion_sku}\nsearch_page: {search_page}\nsort_col: {sort_col.value}\nsort_order: {sort_order.value}")
+        sort_col = sort_col.value
+        sort_order = sort_order.value
+        if customer_name != "" and potion_sku != "":
+            sql += f" WHERE customer_name = :customer_name AND potion_sku = :potion_sku"
+        elif customer_name != "":
+            sql += f" WHERE customer_name = :customer_name"
+        elif potion_sku != "":
+            sql += f" WHERE potion_sku = :potion_sku"
+        
+        sql += f" ORDER BY {sort_col} {sort_order}"
 
+        parameters = {
+            "customer_name":customer_name,
+            "potion_sku":potion_sku,
+        }
+        print(sql)
+        results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
+    results = results.all()
+    offset = int(search_page) * 5
+    page_results = results[offset:offset+5]
     return {
-        "previous": "",
-        "next": "",
-        "results": [
-            {
-                "line_item_id": 1,
-                "item_sku": "1 oblivion potion",
-                "customer_name": "Scaramouche",
-                "line_item_total": 50,
-                "timestamp": "2021-01-01T00:00:00Z",
-            }
-        ],
+        "previous": "" if offset == 0 else search_page -1,
+        "next": "" if offset + 5 >= len(results) else search_page + 1,
+        "results": [item for item in page_results],
     }
 
 
