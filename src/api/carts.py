@@ -59,17 +59,17 @@ def search_orders(
         sort_col = sort_col.value
         sort_order = sort_order.value
         if customer_name != "" and potion_sku != "":
-            sql += f" WHERE customer_name ILIKE :customer_name% AND potion_sku ILIKE :potion_sku%"
+            sql += f" WHERE customer_name ILIKE :customer_name AND potion_sku ILIKE :potion_sku"
         elif customer_name != "":
-            sql += f" WHERE customer_name ILIKE :customer_name%"
+            sql += f" WHERE customer_name ILIKE :customer_name"
         elif potion_sku != "":
-            sql += f" WHERE potion_sku ILIKE :potion_sku%"
+            sql += f" WHERE potion_sku ILIKE :potion_sku"
         
         sql += f" ORDER BY {sort_col} {sort_order}"
 
         parameters = {
-            "customer_name":customer_name,
-            "potion_sku":potion_sku,
+            "customer_name":f"{customer_name}%",
+            "potion_sku":f"{potion_sku}%",
         }
         #print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
