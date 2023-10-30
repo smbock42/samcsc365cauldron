@@ -76,12 +76,12 @@ def search_orders(
     results = results.all()
     print("search_page: ",search_page)
     if search_page == "":
-        search_page = 0
+        search_page = 1
     search_page = int(search_page)
     offset = search_page * 5
     page_results = results[offset:offset+5]
 
-    previous = "" if search_page == 0 else search_page -1
+    previous = "" if search_page == 1 else search_page -1
     next = "" if offset + 5 >= len(results) else search_page + 1
     results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.potion_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
     print(f"previous: {previous}\nnext: {next}\nresults: {results}")
