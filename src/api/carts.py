@@ -54,7 +54,7 @@ def search_orders(
     time is 5 total line items.
     """
     with db.engine.begin() as connection:
-        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as item_sku, purchase_history.quantity as line_item_total, purchase_history.total_amount as total_amount, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
+        sql = "select * from( select row_number() over() as line_item_id, * from ( select purchase_history.created_at as timestamp, purchase_history.customer_name as customer_name, purchase_history.potion_sku as item_sku, purchase_history.quantity as quantity, purchase_history.total_amount as line_item_total, bottle_table.name as potion_name from purchase_history left join bottle_table on bottle_table.sku = purchase_history.potion_sku"
         sort_col = sort_col.value
         sort_order = sort_order.value
 
@@ -85,6 +85,7 @@ def search_orders(
             "potion_sku":f"%{potion_sku}%",
             "cursor":(search_page-1)*5
         }
+        print(sql)
         results = connection.execute(statement=sqlalchemy.text(sql),parameters=parameters)
     results = results.all()
     
@@ -98,7 +99,7 @@ def search_orders(
 
     page_results = results[:5]
 
-    results = [{"line_item_id":i, "item_sku":f"{item.line_item_total} {item.item_sku}", "customer_name": {item.customer_name},"line_item_total":{item.total_amount}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
+    results = [{"line_item_id":i, "item_sku":f"{item.quantity} {item.item_sku}", "customer_name": {item.customer_name},"line_item_total":{item.line_item_total}, "timestamp":{item.timestamp}} for i, item in enumerate(page_results)]
     return {
         "previous": previous,
         "next": next,
