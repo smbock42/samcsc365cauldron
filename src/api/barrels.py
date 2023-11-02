@@ -157,7 +157,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = int(float(first_row[0]))
     
         if gold >= 2000:
-            gold = gold*.9
+            gold = int(gold*.9)
 
         
         # Calculate the total amount of gold required to purchase all of the barrels.
